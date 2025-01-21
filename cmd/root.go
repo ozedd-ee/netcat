@@ -30,14 +30,14 @@ var rootCmd = &cobra.Command{
 
 			// Wait for a termination signal
 			<-ctx.Done()
-			fmt.Println("Shutting down server...")
+			fmt.Println("\nShutting down server...")
 		} else if listenUDP {
 			ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 			defer stop()
 			go src.UDPListen(ctx, "udp", port)
 
 			<-ctx.Done()
-			fmt.Println("Shutting down server...")
+			fmt.Println("\nShutting down server...")
 		}
 	},
 }
