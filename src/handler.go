@@ -68,29 +68,3 @@ func handleConnectionTCP(conn net.Conn) {
 	}()
 	<-done
 }
-
-func handleConnectionUDP(conn net.PacketConn) {
-	buffer := make([]byte, 1024)
-
-	for {
-		fmt.Println("Waiting for a message...")
-		n, addr, err := conn.ReadFrom(buffer)
-		if err != nil {
-			// Check if the connection was closed; this is expected during shutdown
-			if opErr, ok := err.(*net.OpError); ok && opErr.Err.Error() == "use of closed network connection" {
-				// exit loop
-				return
-			}
-
-			fmt.Printf("Error reading from connection: %v\n", err)
-			continue
-		}
-
-		fmt.Printf("Message received from %s: %s\n", addr.String(), string(buffer[:n]))
-
-		_, err = conn.WriteTo([]byte(buffer[:n]), addr)
-		if err != nil {
-			fmt.Printf("Error sending response: %v\n", err)
-		}
-	}
-}

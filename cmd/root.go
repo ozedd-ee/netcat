@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/ozedd-ee/netcat/src"
 	"github.com/spf13/cobra"
@@ -37,6 +38,7 @@ var rootCmd = &cobra.Command{
 			go src.UDPListen(ctx, "udp", port)
 
 			<-ctx.Done()
+			time.Sleep(1 * time.Second) // Wait for other processes
 			fmt.Println("\nShutting down server...")
 		}
 	},
