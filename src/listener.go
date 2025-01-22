@@ -33,10 +33,7 @@ func UDPListen(ctx context.Context, network, port string) {
 	if err != nil {
 		fmt.Printf("failed to start server: %v", err)
 	}
-	defer conn.Close()
-
-	fmt.Println("UDP server is running. Waiting for messages...")
-	go handleConnectionUDP(conn)
+	handleConnectionUDP(conn)
 
 	<-ctx.Done()
 	// Close the connection to unblock `conn.ReadFrom`
