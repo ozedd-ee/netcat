@@ -14,7 +14,10 @@ import (
 
 var listen bool
 var listenUDP bool
+var zeroIO bool
 var port string
+
+var host = "127.0.0.1"
 
 var rootCmd = &cobra.Command{
 	Use:     `netcat`,
@@ -24,22 +27,35 @@ var rootCmd = &cobra.Command{
 
 	Run: func(cmd *cobra.Command, args []string) {
 		if listen {
-			// Create a context that cancels on interrupt signals
-			ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-			defer stop()
-			go src.TCPListen("tcp", port)
+			if listenUDP {
+				ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+				defer stop()
+				go src.UDPListen(ctx, "udp", port)
+	
+				<-ctx.Done()
+				time.Sleep(1 * time.Second) // Wait for other processes
+				fmt.Println("\nShutting down server...")
+			} else {
+				// Create a context that cancels on interrupt signals
+				ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+				defer stop()
+				go src.TCPListen("tcp", port)
 
-			// Wait for a termination signal
-			<-ctx.Done()
-			fmt.Println("\nShutting down server...")
-		} else if listenUDP {
-			ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-			defer stop()
-			go src.UDPListen(ctx, "udp", port)
-
-			<-ctx.Done()
-			time.Sleep(1 * time.Second) // Wait for other processes
-			fmt.Println("\nShutting down server...")
+				// Wait for a termination signal
+				<-ctx.Done()
+				time.Sleep(1 * time.Second) // Wait for other processes
+				fmt.Println("\nShutting down server...")
+			}
+		} else if zeroIO {
+			if len(args) != 0 {
+				hostname := args[0]
+				src.Ping(hostname, port)
+			} else {
+				src.Ping(host, port)
+			}
+		} else {
+			// Default mode without options
+			fmt.Println("Stay tuned")
 		}
 	},
 }
@@ -55,6 +71,8 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&listen, "listen", "l", false, "Run in listening mode for TCP connections")
 
 	rootCmd.PersistentFlags().BoolVarP(&listenUDP, "udp", "u", false, "Run in listening mode for UDP connections")
+
+	rootCmd.PersistentFlags().BoolVarP(&zeroIO, "zeroio", "z", false, "Zero-I/O mode, report connection status only")
 
 	rootCmd.Flags().StringVarP(&port, "port", "p", "8080", "Host port to use")
 }
