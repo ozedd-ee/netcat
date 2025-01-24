@@ -28,3 +28,29 @@ func Ping(host string, port string) {
 	fmt.Printf("TCP Server is listening on %s:%s\n", host, port)
 	conn.Close()
 }
+
+func TcpConnect(host string, port string) {
+	address := fmt.Sprintf("%s:%s", host, port)
+	conn, err := net.Dial("tcp", address)
+	if err != nil {
+		fmt.Printf("Error connecting to server at %s:%e", address, err)
+		return
+	}
+	handleConnectionTCP(conn)
+}
+
+func UdpConnect(host string, port string) {
+	address := fmt.Sprintf("%s:%s", host, port)
+	conn, err := net.Dial("udp", address)
+	if err != nil {
+		fmt.Printf("Error connecting to server at %s:%e", address, err)
+		return
+	}
+	// Type assert to *net.UDPConn since it also implements net.PacketConn
+	udpConn, ok := conn.(*net.UDPConn)
+	if !ok {
+		fmt.Println("Failed to type assert to *net.UDPConn")
+		return
+	}
+	handleConnectionUDP(udpConn)
+}

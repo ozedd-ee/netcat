@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -13,7 +14,7 @@ import (
 )
 
 var listen bool
-var listenUDP bool
+var UDP bool
 var zeroIO bool
 var port string
 
@@ -27,7 +28,7 @@ var rootCmd = &cobra.Command{
 
 	Run: func(cmd *cobra.Command, args []string) {
 		if listen {
-			if listenUDP {
+			if UDP {
 				ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 				defer stop()
 				go src.UDPListen(ctx, "udp", port)
@@ -54,8 +55,17 @@ var rootCmd = &cobra.Command{
 				src.Ping(host, port)
 			}
 		} else {
-			// Default mode without options
-			fmt.Println("Stay tuned")
+			if UDP {
+				if len(args) == 0 {
+					log.Fatal("Hostname not specified")
+				}
+				src.UdpConnect(args[0], port)
+			} else {
+				if len(args) == 0 {
+					log.Fatal("Hostname not specified")
+				}
+				src.TcpConnect(args[0], port)
+			}
 		}
 	},
 }
@@ -70,7 +80,7 @@ func Execute() {
 func init() {
 	rootCmd.PersistentFlags().BoolVarP(&listen, "listen", "l", false, "Run in listening mode for TCP connections")
 
-	rootCmd.PersistentFlags().BoolVarP(&listenUDP, "udp", "u", false, "Run in listening mode for UDP connections")
+	rootCmd.PersistentFlags().BoolVarP(&UDP, "udp", "u", false, "Run in listening mode for UDP connections")
 
 	rootCmd.PersistentFlags().BoolVarP(&zeroIO, "zeroio", "z", false, "Zero-I/O mode, report connection status only")
 
