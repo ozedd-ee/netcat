@@ -33,6 +33,7 @@ func UDPListen(ctx context.Context, network, port string) {
 	if err != nil {
 		fmt.Printf("failed to start server: %v", err)
 	}
+	fmt.Printf("Server is listening on port %s\n", port)
 	handleConnectionUDP(conn)
 
 	<-ctx.Done()
