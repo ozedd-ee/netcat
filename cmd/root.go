@@ -16,6 +16,7 @@ import (
 var listen bool
 var UDP bool
 var zeroIO bool
+var exec bool
 var port string
 
 var host = "127.0.0.1"
@@ -35,6 +36,14 @@ var rootCmd = &cobra.Command{
 	
 				<-ctx.Done()
 				time.Sleep(1 * time.Second) // Wait for other processes
+				fmt.Println("\nShutting down server...")
+			} else if exec {
+				ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+				defer stop()
+				go src.Exec(port, args[0])
+	
+				<-ctx.Done()
+				time.Sleep(1 * time.Second)
 				fmt.Println("\nShutting down server...")
 			} else {
 				// Create a context that cancels on interrupt signals
@@ -83,6 +92,8 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&UDP, "udp", "u", false, "Run in listening mode for UDP connections")
 
 	rootCmd.PersistentFlags().BoolVarP(&zeroIO, "zeroio", "z", false, "Zero-I/O mode, report connection status only")
+
+	rootCmd.PersistentFlags().BoolVarP(&exec, "exec", "e", false, "Exec mode")
 
 	rootCmd.Flags().StringVarP(&port, "port", "p", "8080", "Host port to use")
 }
