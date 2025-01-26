@@ -17,6 +17,7 @@ var listen bool
 var UDP bool
 var zeroIO bool
 var exec bool
+var hex bool
 var port string
 
 var host = "127.0.0.1"
@@ -40,8 +41,19 @@ var rootCmd = &cobra.Command{
 			} else if exec {
 				ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 				defer stop()
+				if len(args) == 0 {
+					log.Fatal("Shell not specified")
+				}
 				go src.Exec(port, args[0])
 	
+				<-ctx.Done()
+				time.Sleep(1 * time.Second)
+				fmt.Println("\nShutting down server...")
+			} else if hex {
+				ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+				defer stop()
+				go src.ListenHex(port)
+
 				<-ctx.Done()
 				time.Sleep(1 * time.Second)
 				fmt.Println("\nShutting down server...")
@@ -94,6 +106,8 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&zeroIO, "zeroio", "z", false, "Zero-I/O mode, report connection status only")
 
 	rootCmd.PersistentFlags().BoolVarP(&exec, "exec", "e", false, "Exec mode")
+
+	rootCmd.PersistentFlags().BoolVarP(&hex, "hex", "x", false, "Dump transmitted data as hex to output")
 
 	rootCmd.Flags().StringVarP(&port, "port", "p", "8080", "Host port to use")
 }
