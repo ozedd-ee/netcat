@@ -25,8 +25,8 @@ var host = "127.0.0.1"
 var rootCmd = &cobra.Command{
 	Use:     `netcat`,
 	Short:   `A lite clone of the Netcat command line utility`,
-	Long:    `Add a longer description`,
-	Example: `netcat -l -p 8080`,
+	Long:    `A lite clone of the Netcat command line utility with support for TCP and UDP connections`,
+	Example: `netcat localhost -p 8080 -l`,
 
 	Run: func(cmd *cobra.Command, args []string) {
 		if listen {
